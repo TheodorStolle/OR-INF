@@ -37,6 +37,7 @@ NPP = Model(Clp.Optimizer)
 @variable(NPP, Storage[fuels, period] >= 0)
 #Maxmimum amount wich can be stored in period t 
 @variable(NPP, StorageCapacity[fuels, period]>= 0)
+
 @variable(NPP, Capacity[technologies, period] >= 0)
 
 #Sums up the cost of each technology for period t (variable + fix costs)
@@ -49,18 +50,18 @@ NPP = Model(Clp.Optimizer)
     + sum(StorageUsed[f,p]*VariableStorageCost[f] for f in fuels) == TotalCostByPeriod[p]
 )
 #Production fucntion for each technology, fuel and time t (+ capacity constraint)
-@constraint(NPP, ProductionFunction[t in technologies, f in fuels, p in period], Production[t,f,p] <= OutputRatio[t,f,p] * Capacity[t])
+@constraint(NPP, ProductionFunction[t in technologies, f in fuels, p in period], Production[t,f,p] <= OutputRatio[t,f,p] * Capacity[t,p])
 #Same Demand function as in the ESM Model from the lecture but with additional stored fuel capacities 
 #on the left side of the equation: All the production in this period + the fuel wich can me consumed from the storage (Output)
 #on the right side of the equation: Demand plus the fuel that we store in this period (Input)
 @constraint(NPP, DemandAdequacy[t in technologies, f in fuels, p in period], sum(Production[t,f,p] for t in technologies) + Output[f,p] >= Demand[f] + Input[f,p])
 #We can only use as much fuel from the Storage as we stored ealier
-@constraint(NPP, StorageBalance[f in fuels, p in period], Output[f,p] <= Storage[f,p])
+@constraint(NPP, StorageBalance[f in fuels, p in period], Output[f,p] <= Storage[f,p-1])
 #We can only store as much fuel as we have capacities
-@constraint(NPP, StorageCapacity[f in fuels, p in period], Storage[f,p] <= StorageCapacity[f,p-1])
+@constraint(NPP, StorageCapacity[f in fuels, p in period], Storage[f,p] <= StorageCapacity[f,p])
 #Update function of the amount of stored energy for each period
 #The stored fuel level for the next period (StorageUsed[f,t+1]) is 
 #the current fuel level(StorageUsed[f,t]) + the fuel we store this period (Input[f,t]) - the fuel we take out of the storage (Output[f,t]))
 @Constraint(NPP, StorageBalanceUpdate[f in fuels, p in period], Storage[f,p] == Storage[f,p-1] + StorageInput[f,p] - StorageOutput[f,p])
 #linear objective function wich sums up the cost of all periods
-@objective(NPP, Min, sum(TotalCostByPeriod[p] for p in period))
+@objective(NPP, Min, sum(TotalCostByPeriod[p] for p in period) + )
