@@ -19,7 +19,7 @@ end
 
 Demand = Dict()
 Demand[technologies][fuels][period]
-
+herge
 NPP = Model(Clp.Optimizer)
 #Sums up the Cost for each technology per period 
 @variable(NPP, TotalCostByTechnology[technologies, period] >=0)
@@ -28,7 +28,7 @@ NPP = Model(Clp.Optimizer)
 #Production of each technology of fuels in each period
 @variable(NPP, Production[technologies, fuels ,period ] >= 0)
 #The Capacity of how much a technology can produce in period t
-@variable(NPP, ProductionCapacity[technologies, period] >= 0)
+@variable(NPP, Capacity[technologies, period] >= 0)
 #Amount of fuel f wich is consumed in period t from the storage
 @variable(NPP, StorageOutput[fuels, period] >= 0)
 #Amount of fuel f wich is stored in period t in the storage
@@ -38,7 +38,7 @@ NPP = Model(Clp.Optimizer)
 #Maxmimum amount wich can be stored in period t 
 @variable(NPP, StorageCapacity[fuels, period]>= 0)
 
-@variable(NPP, Capacity[technologies, period] >= 0)
+
 
 #Sums up the cost of each technology for period t (variable + fix costs)
 @constraint(NPP, TotalCostByTechnology[t in technologies, p in time], 
